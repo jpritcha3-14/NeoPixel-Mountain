@@ -1,6 +1,6 @@
 #/bin/python3
 
-import logging
+import argparse
 import neopixel, board
 import time
 import random
@@ -30,10 +30,11 @@ def clear_pixels():
 
 class PixStreak:
     
-    def __init__(self, pix_idx, pix_list):
+    def __init__(self, pix_idx, pix_list, snow=False):
         self.pix_idx = pix_idx
         self.pix_list = pix_list
-        self.speed = random.randint(1, 4)
+        self.snow = snow
+        self.speed = random.randint(5, 8) if self.snow else random.randint(1, 4)
         self.LowLight = 25
         self.HighLight = 75
         self.index = 0
@@ -64,24 +65,36 @@ class PixStreak:
         # Otherwise, update the current pixels before returning
         if self.index == 0:
             self.pixels = { 
-                self.pix_list[0]: (0, 0, self.LowLight),
+                self.pix_list[0]: (self.LowLight if self.snow else 0,
+                                   self.LowLight if self.snow else 0,
+                                   self.LowLight),
             }
         elif self.index == len(self.pix_list) - 1:
             self.pixels = { 
-                self.pix_list[-2]: (0, 0, self.LowLight),
-                self.pix_list[-1]: (0, 0, self.HighLight),
+                self.pix_list[-2]: (self.LowLight if self.snow else 0, 
+                                    self.LowLight if self.snow else 0, 
+                                    self.LowLight),
+                self.pix_list[-1]: (0 if self.snow else self.HighLight,
+                                    0 if self.snow else self.HighLight,
+                                    self.HighLight),
             }
         else:
             self.pixels = { 
-                self.pix_list[self.index-1]: (0, 0, self.LowLight),
-                self.pix_list[self.index]: (0, 0, self.HighLight),
-                self.pix_list[self.index+1]: (0, 0, self.LowLight),
+                self.pix_list[self.index-1]: (self.LowLight if self.snow else 0,
+                                              self.LowLight if self.snow else 0,
+                                              self.LowLight),
+                self.pix_list[self.index]: (self.HighLight if self.snow else 0,
+                                            self.HighLight if self.snow else 0,
+                                            self.HighLight),
+                self.pix_list[self.index+1]: (self.LowLight if self.snow else 0,
+                                              self.LowLight if self.snow else 0,
+                                              self.LowLight),
             }
 
         self.index += 1
         return self.pixels
 
-def main():
+def main(snow):
     active_streaks = []
     while True:
         # Append new random PixStreaks to active_streaks until there are
@@ -93,13 +106,17 @@ def main():
                     set(range(len(pix_streaks)))-set(map(lambda x: x.pix_idx, active_streaks))
                 )
             )
-            active_streaks.append(PixStreak(new_streak_number, pix_streaks[new_streak_number]))
-
-        #print(list(map(lambda x: x.pix_idx, active_streaks)))
+            active_streaks.append(
+                PixStreak(
+                    new_streak_number,
+                    pix_streaks[new_streak_number], 
+                    snow,
+                )
+            )
 
         # For each active streak, get its next pixel value
         pixel_updates = []
-        for i, s in enumerate(active_streaks):
+        for s in active_streaks:
             try:
                 pixel_updates.append(next(s))
             except StopIteration:
@@ -123,8 +140,11 @@ def main():
         time.sleep(0.05)
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--snow', dest='snow', action='store_true')
+    args = parser.parse_args()
     try:
-        main()
+        main(args.snow)
     # Clear pixels on SIGINT
     except KeyboardInterrupt:
         clear_pixels()
