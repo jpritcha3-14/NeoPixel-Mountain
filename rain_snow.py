@@ -74,8 +74,8 @@ class PixStreak:
                 self.pix_list[-2]: (self.LowLight if self.snow else 0, 
                                     self.LowLight if self.snow else 0, 
                                     self.LowLight),
-                self.pix_list[-1]: (0 if self.snow else self.HighLight,
-                                    0 if self.snow else self.HighLight,
+                self.pix_list[-1]: (self.HighLight if self.snow else 0,
+                                    self.HighLight if self.snow else 0,
                                     self.HighLight),
             }
         else:
