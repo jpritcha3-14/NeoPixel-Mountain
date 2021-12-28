@@ -6,7 +6,7 @@ import time
 import random
 import math
 
-pix_stars = list(range(57, 134))
+pix_stars = list(range(57, 104)) + [1, 3, 5, 7, 9]
 pin = board.D18
 pixels = neopixel.NeoPixel(pin, 300, auto_write=False)
 MAX_NUM_STARS = 20
@@ -37,7 +37,7 @@ class Star:
         self.linear_interp = interpolate(
             start=0, 
             end=self.offset, 
-            steps=10,
+            steps=20,
             integer=True, 
         )
         self.sin_interp = interpolate(
