@@ -79,7 +79,10 @@ def main():
                 math.floor(ticks/100)+2
             )
             offset = random.randint(10, 40)
-            intensity = random.randint(5, math.floor(offset/2))
+            intensity = random.randint(
+                math.floor(offset/4), 
+                math.floor(offset/2),
+            )
             active_stars.append(
                 Star(
                     num=num,

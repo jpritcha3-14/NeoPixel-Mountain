@@ -5,7 +5,8 @@ import neopixel
 import board
 
 # LED strip configuration:
-pix_trees = list(range(104, 168))
+pix_trees = list(range(104, 160))
+pix_mountains = list(range(160, 235))
 LED_COUNT = len(pix_trees)
 BLACK = (0, 0, 0)
 

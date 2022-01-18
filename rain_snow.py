@@ -4,6 +4,7 @@ import argparse
 import neopixel, board
 import time
 import random
+from enum import Enum
 
 pix_rain = list(range(57))
 pix_streaks = []
@@ -18,11 +19,16 @@ pix_streaks.append([41, 42, 43, 44, 45, 46])
 pix_streaks.append([51, 50, 49, 48, 47])
 pix_streaks.append([52, 53, 54, 55, 56])
 pix_stars = list(range(57, 134))
-pix_trees = list(range(134, 190))
-pix_mountains = list(range(190, 265))
+pix_trees = list(range(104, 160))
+pix_mountains = list(range(160, 235))
 pin = board.D18
 pixels = neopixel.NeoPixel(pin, 300, auto_write=False)
 MAX_ACTIVE_STREAKS = 5
+
+class Intensity(Enum):
+    LIGHT = 3
+    MEDIUM = 5
+    HEAVY = 7
 
 def clear_pixels():
     for i in pix_rain:
@@ -138,6 +144,71 @@ def main(snow):
 
         # Sleep to keep updates on a semi-regular interval
         time.sleep(0.05)
+
+class RainSnow():
+
+    def __init__(self, amount=0.05, snow=False):
+        self.active_streaks=[]
+        self.snow=snow
+        self.intensity=self.get_intensity(amount)
+
+    def get_intensity(self, val):
+        if self.snow:
+            if val < 0.1:
+                return Intensity.LIGHT
+            elif val < 0.3:
+                return Intensity.MEDIUM
+            else:
+                return Intensity.HEAVY
+        else:
+            if val < 0.2:
+                return Intensity.LIGHT
+            elif val < 0.5:
+                return Intensity.MEDIUM
+            else:
+                return Intensity.HEAVY
+
+    def update(self):
+        while True:
+            # Append new random PixStreaks to self.active_streaks until there are
+            # self.intensity 
+            while len(self.active_streaks) < self.intensity.value:
+                # Get a new streak number that isn't already in self.active_streaks
+                new_streak_number = random.choice(
+                    list(
+                        set(range(len(pix_streaks)))-set(map(lambda x: x.pix_idx, self.active_streaks))
+                    )
+                )
+                self.active_streaks.append(
+                    PixStreak(
+                        new_streak_number,
+                        pix_streaks[new_streak_number], 
+                        self.snow,
+                    )
+                )
+
+            # For each active streak, get its next pixel value
+            pixel_list = []
+            for s in self.active_streaks:
+                try:
+                    pixel_list.append(next(s))
+                except StopIteration:
+                    print("{} streak {} finished".format("snow" if self.snow else "rain", s.pix_idx))
+
+            print(pixel_list)
+            # Remove any streaks that have finished from the active_streaks queue
+            # The range is reversed to prevent shifing list elements before popping them
+            for n in reversed(range(self.intensity.value)):
+                if self.active_streaks[n].done:
+                    self.active_streaks.pop(n)
+
+            # unpack list into dictionary 
+            pixel_updates = {}
+            for d in pixel_list:
+                print(d)
+                pixel_updates.update(d)
+
+            return pixel_updates
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
