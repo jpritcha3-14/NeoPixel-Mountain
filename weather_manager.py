@@ -10,6 +10,8 @@ from rain_snow import (
     RainSnow,
 )
 
+from twinkling_stars import TwinklingStars
+
 pin = board.D18
 pixels = neopixel.NeoPixel(pin, 300, auto_write=False)
 pix_rain = list(range(57))
@@ -40,6 +42,7 @@ class DummyWeatherClass():
     @property 
     def sset_time(self):
         return 0 
+
 
 class WeatherManager():
     def __init__(self, pixels, tick_time=0.05, fade_ticks=100):
@@ -72,8 +75,8 @@ class WeatherManager():
             self.fade_sky = self.fade_ticks
         elif (time.time() > cur_weather.sset_time 
               or time.time() < cur_weather.srise_time):
-            # Check if it's night, stars
-            pass
+            self.next_sky = TwinklingStars()
+            self.fade_sky = self.fade_ticks
         else: 
             # No weather
             self.next_sky = None
@@ -133,6 +136,8 @@ def dummy_weather_process(conn):
         conn.send(DummyWeatherClass(rain={"1h": 0.5}))
         time.sleep(10)
         conn.send(DummyWeatherClass(snow={"1h": 0.5}))
+        time.sleep(10)
+        conn.send(DummyWeatherClass())
         time.sleep(10)
 
 

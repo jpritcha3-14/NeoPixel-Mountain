@@ -109,6 +109,53 @@ def main():
 
         time.sleep(0.05)
         
+class TwinklingStars():
+
+    def __init__(self):
+        self.active_stars = []
+
+    def update(self):
+        #Add stars to active stars to maintain the MAX number in avtive_stars
+        print(list(map(lambda x: x.num, self.active_stars)))
+        while len(self.active_stars) < MAX_NUM_STARS:
+            num = random.choice(
+                    list(
+                        set(pix_stars) - set(map(lambda x: x.num, self.active_stars))
+                    )
+                )
+            ticks = random.randint(100, 400)
+            oscillations = random.randint(
+                math.floor(ticks/100),
+                math.floor(ticks/100)+2
+            )
+            offset = random.randint(10, 40)
+            intensity = random.randint(
+                math.floor(offset/4), 
+                math.floor(offset/2),
+            )
+            self.active_stars.append(
+                Star(
+                    num=num,
+                    ticks=ticks,
+                    oscillations=oscillations,
+                    intensity=intensity,
+                    offset=offset,
+                )
+            )
+
+        # Update star pixel values and show
+        star_values = {}
+        for s in self.active_stars:
+            cur_val = next(s.iter)
+            star_values[s.num] = (cur_val, cur_val, cur_val)
+
+        # Remove stars that have finished twinkling
+        for i in reversed(range(len(self.active_stars))):
+            if self.active_stars[i].done:
+                self.active_stars.pop(i)
+
+        return star_values
+
 
 if __name__ == '__main__':
     try:
