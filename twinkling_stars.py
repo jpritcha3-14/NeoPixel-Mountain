@@ -17,13 +17,13 @@ def clear_pixels():
 
 def interpolate(start, end, steps, integer=False):
     diff = (end - start) / steps
-    if integer:
-        diff = math.floor(diff)
     result = [start]
     cur_val = start
     for x in range(steps):
         cur_val += diff
         result.append(cur_val)
+    if integer:
+        result = list(map(math.floor, result))
     return result
 
 class Star:
@@ -37,7 +37,7 @@ class Star:
         self.linear_interp = interpolate(
             start=0, 
             end=self.offset, 
-            steps=20,
+            steps=60,
             integer=True, 
         )
         self.sin_interp = interpolate(
