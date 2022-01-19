@@ -23,9 +23,11 @@ def clear_pixels():
 
 class DummyWeatherClass():
 
-    def __init__(self, rain=None, snow=None):
+    def __init__(self, rain=None, snow=None, srise_time=0, sset_time=0):
         self._rain = {} if rain == None else rain
         self._snow = {} if snow == None else snow
+        self._srise_time = srise_time
+        self._sset_time = sset_time
 
     @property 
     def rain(self):
@@ -37,11 +39,11 @@ class DummyWeatherClass():
 
     @property 
     def srise_time(self):
-        return 0 
+        return self._srise_time 
 
     @property 
     def sset_time(self):
-        return 0 
+        return self._sset_time 
 
 
 class WeatherManager():
@@ -65,22 +67,20 @@ class WeatherManager():
                 amount = cur_weather.snow.get("1h", 0.05),
                 snow = True
             )
-            self.fade_sky = self.fade_ticks
         elif cur_weather.rain:
             print("setting rain")
             self.next_sky = RainSnow(
                 amount = cur_weather.rain.get("1h", 0.05),
                 snow = False
             )
-            self.fade_sky = self.fade_ticks
         elif (time.time() > cur_weather.sset_time 
               or time.time() < cur_weather.srise_time):
             self.next_sky = TwinklingStars()
-            self.fade_sky = self.fade_ticks
         else: 
             # No weather
             self.next_sky = None
 
+        self.fade_sky = 1 if self.cur_sky == None else self.fade_ticks
         print(cur_weather.rain, cur_weather.snow, self.next_sky, self.cur_sky)
 
     def tick(self):
@@ -129,16 +129,23 @@ def current_weather_process(conn):
         print(w.rain, w.snow)
         conn.send(w)
 
-        time.sleep(10)
+        time.sleep(15 * 60)
 
 def dummy_weather_process(conn):
     while True:
         conn.send(DummyWeatherClass(rain={"1h": 0.5}))
-        time.sleep(10)
+        time.sleep(15)
         conn.send(DummyWeatherClass(snow={"1h": 0.5}))
-        time.sleep(10)
+        time.sleep(15)
         conn.send(DummyWeatherClass())
-        time.sleep(10)
+        time.sleep(15)
+        conn.send(
+            DummyWeatherClass(
+                srise_time = time.time() - 1000,
+                sset_time = time.time() + 1000,
+            )
+        )
+        time.sleep(15)
 
 
 def update_leds_process(child_process):
