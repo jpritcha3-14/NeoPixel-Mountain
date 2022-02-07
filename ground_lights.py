@@ -102,11 +102,11 @@ class GroundLights():
 
     def update(self):
         #Add lights to active lights to maintain the MAX number in avtive_lights
-        print(list(map(lambda x: x.num, self.active_lights)))
+        print("ground lights", list(map(lambda x: x.num, self.active_lights)))
         while len(self.active_lights) < MAX_NUM_LIGHTS:
             num = random.choice(
                     list(
-                        set(pix_range) - set(map(lambda x: x.num, self.active_lights))
+                        set(self.pix_range) - set(map(lambda x: x.num, self.active_lights))
                     )
                 )
             ticks = random.randint(100, 400)
@@ -114,10 +114,7 @@ class GroundLights():
                 math.floor(ticks/100),
                 math.floor(ticks/100)+2
             )
-            intensity = random.randint(
-                math.floor(offset/4), 
-                math.floor(offset/2),
-            )
+            intensity = random.randint(30, 100)
             self.active_lights.append(
                 Light(
                     num=num,
@@ -127,7 +124,7 @@ class GroundLights():
                 )
             )
 
-        # Update light pixel values and show
+        # Update light pixel values
         light_values = {}
         for s in self.active_lights:
             cur_val = next(s.iter)
@@ -138,6 +135,7 @@ class GroundLights():
             if self.active_lights[i].done:
                 self.active_lights.pop(i)
 
+        # Return light pixel values
         return light_values
 
 

@@ -9,16 +9,17 @@ from rain_snow import (
     Intensity,
     RainSnow,
 )
-
 from twinkling_stars import TwinklingStars
+from ground_lights import GroundLights
 
 pin = board.D18
 pixels = neopixel.NeoPixel(pin, 300, auto_write=False)
 pix_rain = list(range(57))
+pix_trees = list(range(104, 160))
+GREEN = (0, 1, 0)
 
-
-def clear_pixels():
-    for i in pix_rain:
+def clear_pixels(pix):
+    for i in pix:
         pixels[i] = (0, 0, 0)
 
 class DummyWeatherClass():
@@ -77,28 +78,44 @@ class WeatherManager():
               or time.time() < cur_weather.srise_time):
             self.next_sky = TwinklingStars()
         else: 
-            # No weather
+            # No sky weather
             self.next_sky = None
 
+        if (time.time() < cur_weather.sset_time 
+              and time.time() > cur_weather.srise_time):
+            print("setting ground lights")
+            self.next_ground = GroundLights(pix_trees, GREEN)
+        else:
+            # No ground weather
+            self.next_ground = None
+
         self.fade_sky = 1 if self.cur_sky == None else self.fade_ticks
-        print(cur_weather.rain, cur_weather.snow, self.next_sky, self.cur_sky)
+        self.fade_ground = 1 if self.cur_ground == None else self.fade_ticks
+        #print(cur_weather.rain, cur_weather.snow, self.next_sky, self.cur_sky)
 
     def tick(self):
-        print("fade_ticks", self.fade_sky)
-        clear_pixels()
-        pixel_updates = {}
-        # Get pixel values for current weather event
-        if self.cur_sky:
-            pixel_updates.update(self.cur_sky.update()) 
+        print("fade_ticks_sky", self.fade_sky)
+        print("fade_ticks_ground", self.fade_ground)
+        print("cur_sky", self.cur_sky)
+        print("cur_ground", self.cur_ground)
+        clear_pixels(pix_rain + pix_trees)
+        pixel_updates_sky = {}
+        pixel_updates_ground = {}
 
-        # Use current weather event
+        # Get pixel values for current weather events
+        if self.cur_sky:
+            pixel_updates_sky.update(self.cur_sky.update()) 
+        if self.cur_ground:
+            pixel_updates_ground.update(self.cur_ground.update()) 
+
+        # Use current sky weather event
         if self.fade_sky == 0:
-            for k, v in pixel_updates.items():
+            for k, v in pixel_updates_sky.items():
                 self.pixels[k] = v
 
-        # Fade out and transition to next weather event
+        # Fade out and transition to next sky weather event
         else:
-            for k, v in pixel_updates.items():
+            for k, v in pixel_updates_sky.items():
                 self.pixels[k] = tuple(
                     map(
                         lambda x: max(0, x-(self.fade_ticks - self.fade_sky)), v
@@ -109,9 +126,26 @@ class WeatherManager():
                 self.cur_sky = self.next_sky
                 self.next_sky = None
 
+        # Use current ground weather event
+        if self.fade_ground == 0:
+            for k, v in pixel_updates_ground.items():
+                self.pixels[k] = v
+
+        # Fade out and transition to next ground weather event
+        else:
+            for k, v in pixel_updates_ground.items():
+                self.pixels[k] = tuple(
+                    map(
+                        lambda x: max(0, x-(self.fade_ticks - self.fade_ground)), v
+                    )
+                )
+            self.fade_ground -= 1
+            if self.fade_ground == 0:
+                self.cur_ground = self.next_ground
+                self.next_ground = None
+
         self.pixels.show()
         time.sleep(self.tick_time)
-
 
 def current_weather_process(conn):
     with open("weather.key", "r") as f:
