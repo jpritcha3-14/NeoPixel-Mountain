@@ -100,50 +100,6 @@ class PixStreak:
         self.index += 1
         return self.pixels
 
-def main(snow):
-    active_streaks = []
-    while True:
-        # Append new random PixStreaks to active_streaks until there are
-        # MAX_ACTIVE_STREAKS
-        while len(active_streaks) < MAX_ACTIVE_STREAKS:
-            # Get a new streak number that isn't already in active_streaks
-            new_streak_number = random.choice(
-                list(
-                    set(range(len(pix_streaks)))-set(map(lambda x: x.pix_idx, active_streaks))
-                )
-            )
-            active_streaks.append(
-                PixStreak(
-                    new_streak_number,
-                    pix_streaks[new_streak_number], 
-                    snow,
-                )
-            )
-
-        # For each active streak, get its next pixel value
-        pixel_updates = []
-        for s in active_streaks:
-            try:
-                pixel_updates.append(next(s))
-            except StopIteration:
-                print("streak {} finished".format(s.pix_idx))
-
-        # Remove any streaks that have finished from the active_streaks queue
-        # The range is reversed to prevent shifing list elements before popping them
-        for n in reversed(range(MAX_ACTIVE_STREAKS)):
-            if active_streaks[n].done:
-                active_streaks.pop(n)
-
-        clear_pixels()
-
-        # Update the pixels and show them :)
-        for u in pixel_updates:
-            for k, v in u.items():
-                pixels[k] = v
-        pixels.show()
-
-        # Sleep to keep updates on a semi-regular interval
-        time.sleep(0.05)
 
 class RainSnow():
 
@@ -210,13 +166,3 @@ class RainSnow():
 
             return pixel_updates
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--snow', dest='snow', action='store_true')
-    args = parser.parse_args()
-    try:
-        main(args.snow)
-    # Clear pixels on SIGINT
-    except KeyboardInterrupt:
-        clear_pixels()
-        pixels.show()

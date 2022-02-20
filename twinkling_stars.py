@@ -62,53 +62,7 @@ class Star:
         self.done = True
         yield 0
         
-def main():
-    active_stars = []
-    while True:
-        #Add stars to active stars to maintain the MAX number in avtive_stars
-        print(list(map(lambda x: x.num, active_stars)))
-        while len(active_stars) < MAX_NUM_STARS:
-            num = random.choice(
-                    list(
-                        set(pix_stars) - set(map(lambda x: x.num, active_stars))
-                    )
-                )
-            ticks = random.randint(100, 400)
-            oscillations = random.randint(
-                math.floor(ticks/100),
-                math.floor(ticks/100)+2
-            )
-            offset = random.randint(10, 40)
-            intensity = random.randint(
-                math.floor(offset/4), 
-                math.floor(offset/2),
-            )
-            active_stars.append(
-                Star(
-                    num=num,
-                    ticks=ticks,
-                    oscillations=oscillations,
-                    intensity=intensity,
-                    offset=offset,
-                )
-            )
-
-        clear_pixels()
-
-        # Update star pixel values and show
-        for s in active_stars:
-            cur_val = next(s.iter)
-            print(cur_val)
-            pixels[s.num] = (cur_val, cur_val, cur_val)
-        pixels.show()
-
-        # Remove stars that have finished twinkling
-        for i in reversed(range(len(active_stars))):
-            if active_stars[i].done:
-                active_stars.pop(i)
-
-        time.sleep(0.05)
-        
+       
 class TwinklingStars():
 
     def __init__(self):
@@ -156,11 +110,3 @@ class TwinklingStars():
 
         return star_values
 
-
-if __name__ == '__main__':
-    try:
-        main()
-    # Clear pixels on SIGINT
-    except KeyboardInterrupt:
-        clear_pixels()
-        pixels.show()

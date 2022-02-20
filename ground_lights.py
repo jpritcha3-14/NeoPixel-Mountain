@@ -50,49 +50,7 @@ class Light:
         self.done = True
         yield 0
         
-def main(pix_range, color):
-    active_lights = []
-    while True:
-        #Add lights to active lights to maintain the MAX number in avtive_lights
-        #print(list(map(lambda x: x.num, active_lights)))
-        while len(active_lights) < MAX_NUM_LIGHTS:
-            num = random.choice(
-                    list(
-                        set(pix_range) - set(map(lambda x: x.num, active_lights))
-                    )
-                )
-            ticks = random.randint(100, 400)
-            oscillations = random.randint(
-                math.floor(ticks/100),
-                math.floor(ticks/100)+2
-            )
-            intensity = random.randint(30, 100)
-            active_lights.append(
-                Light(
-                    num=num,
-                    ticks=ticks,
-                    oscillations=oscillations,
-                    intensity=intensity,
-                )
-            )
 
-        clear_pixels(pix_range)
-
-        # Update light pixel values and show
-        for s in active_lights:
-            cur_val = next(s.iter)
-            pixels[s.num] = tuple(math.floor(x * cur_val) for x in color)
-        print(pixels[104:160])
-        pixels.show()
-
-        # Remove lights that have finished twinkling
-        for i in reversed(range(len(active_lights))):
-            if active_lights[i].done:
-                active_lights.pop(i)
-
-        time.sleep(0.05)
-
-        
 class GroundLights():
 
     def __init__(self, pix_range, color):
@@ -138,11 +96,3 @@ class GroundLights():
         # Return light pixel values
         return light_values
 
-
-if __name__ == '__main__':
-    try:
-        main(pix_trees, (0, 1, 0))
-    # Clear pixels on SIGINT
-    except KeyboardInterrupt:
-        clear_pixels()
-        pixels.show()

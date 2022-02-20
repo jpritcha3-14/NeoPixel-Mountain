@@ -48,6 +48,7 @@ class DummyWeatherClass():
 
 
 class WeatherManager():
+
     def __init__(self, pixels, tick_time=0.05, fade_ticks=100):
         self.pixels = pixels
         self.tick_time = tick_time
